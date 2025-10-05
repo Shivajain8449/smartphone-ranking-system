@@ -504,6 +504,9 @@ Contributions are welcome! Here's how you can help:
 
 ## 📸 Screenshots
 
+### Given Dataset
+![Given Dataset](images/dataset.png)
+
 ### System Output
 ![System Output](images/output.png)
 

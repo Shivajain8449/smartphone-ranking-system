@@ -502,6 +502,17 @@ Contributions are welcome! Here's how you can help:
 
 ---
 
+## 📸 Screenshots
+
+### System Output
+![System Output](images/output.png)
+
+### Model Evaluation
+![Evaluation](images/evaluation.png)
+
+### TOPSIS Rankings
+![Rankings](images/rankings.png)
+
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

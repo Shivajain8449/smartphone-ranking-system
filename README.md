@@ -87,7 +87,7 @@ An intelligent system that combines:
 ### Step 1: Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/smartphone-ranking-system.git
+git clone https://github.com/Shivajain8449/smartphone-ranking-system.git
 cd smartphone-ranking-system
 ```
 
@@ -539,16 +539,16 @@ in the Software without restriction...
 - 📧 Email: [shivajain299@gmail.com]
 - 💼 LinkedIn: [www.linkedin.com/in/shiva-jain]
 - 🐙 GitHub: [github.com/Shivajain8449]
-- 🌐 Website: [yourwebsite.com]
+- 🌐 Portfolio: [Coming Soon]
 
 ---
 
 ## 🙏 Acknowledgments
 
-- **Project Guide**: [Guide Name], [Department]
-- **Institution**: [College/University Name]
-- **Course**: [Course Name and Code]
-- **Semester**: [Semester/Year]
+- **Project Guide**: Self-guided / Open Source Project
+- **Institution**: Independent Developer
+- **Course**: Machine Learning & Data Science
+- **Year**: 2025
 
 ### Special Thanks To:
 - Scikit-learn developers for excellent ML library
@@ -661,8 +661,8 @@ Interested in collaborating or have suggestions? Reach out!
 
 ### ⭐ Don't forget to star this repo if you found it helpful! ⭐
 
-[Report Bug](https://github.com/yourusername/smartphone-ranking/issues) · 
-[Request Feature](https://github.com/yourusername/smartphone-ranking/issues) · 
-[Documentation](https://github.com/yourusername/smartphone-ranking/wiki)
+[Report Bug](https://github.com/Shivajain8449/smartphone-ranking-system/issues)
+[Request Feature](https://github.com/Shivajain8449/smartphone-ranking-system/issues)
+[Documentation](https://github.com/Shivajain8449/smartphone-ranking-system/wiki)
 
 </div>

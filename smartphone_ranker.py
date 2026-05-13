@@ -183,90 +183,111 @@ class SmartphoneRanker:
 
 def main():
     """
-    Main function to run the smartphone ranking system
+    Main function to run the smartphone ranking system.
+    Supports both sample dataset and loading from CSV file.
     """
-    # Option 1: Sample dataset (default)
-    data = {
-        'SMARTPHONENAME': ['Galaxy X1', 'Pixel pro', 'Moto one', 'Redmi note', 'Realme GT'],
-        'BATTERY': [5000, 4500, 4000, 4500, 4200],
-        'CAMERA': [64, 48, 32, 50, 64],
-        'STORAGE': [1288.5, 1289, 647.5, 1288, 2567.8],
-        'PROCESSOR': [20000, 25000, 18000, 15000, 30000],
-        'PRICE': [20000, 25000, 18000, 15000, 30000]
-    }
-    df = pd.DataFrame(data)
-    
-    # Option 2: Load from CSV (uncomment to use)
-    # df = pd.read_csv('smartphone_data.csv')
-    
-    print("="*80)
+    import os
+
+    # ----------------------------------------------------------------
+    # Option 1: Load from CSV (recommended — uses your full dataset)
+    # ----------------------------------------------------------------
+    csv_path = os.path.join('data', 'sample_smartphone_data.csv')
+    if os.path.exists(csv_path):
+        df = pd.read_csv(csv_path)
+        print(f"Loaded data from {csv_path}")
+    else:
+        # ----------------------------------------------------------------
+        # Option 2: Built-in sample dataset (CORRECTED — PROCESSOR fixed)
+        # PROCESSOR values are clock speeds in GHz, NOT price values.
+        # ----------------------------------------------------------------
+        data = {
+            'SMARTPHONENAME': ['Galaxy X1', 'Pixel pro', 'Moto one',
+                               'Redmi note', 'Realme GT'],
+            'BATTERY':    [5000, 4500, 4000, 4500, 4200],   # mAh
+            'CAMERA':     [64,   48,   32,   50,   64],      # MP
+            'STORAGE':    [128,  128,  64,   128,  256],     # GB
+            'PROCESSOR':  [2.4,  2.8,  2.0,  2.3,  3.0],   # GHz  ← FIXED
+            'RAM':        [8,    12,   6,    8,    12],      # GB
+            'PRICE':      [20000, 25000, 18000, 15000, 30000]  # INR
+        }
+        df = pd.DataFrame(data)
+        print("Using built-in sample dataset")
+
+    print("=" * 80)
     print("SMARTPHONE FEATURE RANKING SYSTEM")
-    print("="*80)
-    
+    print("=" * 80)
+
     print("\nOriginal Dataset:")
     print(tabulate(df, headers='keys', tablefmt='grid', showindex=False))
-    
+
     # Initialize ranker
     ranker = SmartphoneRanker(df)
-    
-    # Define features to analyze
-    features = ['BATTERY', 'CAMERA', 'STORAGE', 'PROCESSOR', 'PRICE']
-    
-    # Define weights for each feature (adjust based on importance)
+
+    # Define features to analyse (excluding SMARTPHONENAME)
+    features = ['BATTERY', 'CAMERA', 'STORAGE', 'PROCESSOR', 'RAM', 'PRICE']
+
+    # Define weights for each feature (must sum to 1.0)
     weights = {
-        'BATTERY': 0.20,    # 20% importance
-        'CAMERA': 0.25,     # 25% importance
-        'STORAGE': 0.15,    # 15% importance
-        'PROCESSOR': 0.25,  # 25% importance
-        'PRICE': 0.15       # 15% importance (lower price is better)
+        'BATTERY':   0.20,   # 20% — battery life matters
+        'CAMERA':    0.20,   # 20% — camera quality
+        'STORAGE':   0.10,   # 10% — storage space
+        'PROCESSOR': 0.20,   # 20% — processing speed
+        'RAM':       0.15,   # 15% — multitasking
+        'PRICE':     0.15    # 15% — lower price is better
     }
-    
-    print("\n" + "="*80)
+
+    print("\n" + "=" * 80)
     print("Feature Weights:")
     for feature, weight in weights.items():
-        print(f"  {feature}: {weight*100:.0f}%")
-    print("="*80)
-    
+        print(f"  {feature}: {weight * 100:.0f}%")
+    print("=" * 80)
+
     # Step 1: Normalize data
     print("\nStep 1: Normalizing data...")
     ranker.normalize_data(features)
-    
+
     # Step 2: Apply weights
     print("Step 2: Applying weights...")
     ranker.apply_weights(features, weights)
-    
+
     # Step 3: Calculate TOPSIS scores
     print("Step 3: Calculating TOPSIS scores...")
-    result = ranker.calculate_topsis(features)
-    
+    beneficial = ['BATTERY', 'CAMERA', 'STORAGE', 'PROCESSOR', 'RAM']
+    result = ranker.calculate_topsis(features, beneficial=beneficial,
+                                     non_beneficial=['PRICE'])
+
     # Display results
-    print("\n" + "="*80)
+    print("\n" + "=" * 80)
     print("FINAL RANKINGS:")
-    print("="*80)
+    print("=" * 80)
     print(tabulate(result, headers='keys', tablefmt='grid', showindex=False))
-    
+
     # Save to CSV
-    result.to_csv('smartphone_rankings.csv', index=False)
-    print("\nResults saved to 'smartphone_rankings.csv'")
-    
+    output_path = os.path.join('output', 'final_smartphone_rankings.csv')
+    os.makedirs('output', exist_ok=True)
+    result.to_csv(output_path, index=False)
+    print(f"\nResults saved to '{output_path}'")
+
     # Generate visualizations
     print("\nGenerating visualizations...")
     ranker.visualize_rankings(result)
-    
+
     # Additional insights
-    print("\n" + "="*80)
+    print("\n" + "=" * 80)
     print("KEY INSIGHTS:")
-    print("="*80)
+    print("=" * 80)
     best_phone = result.iloc[0]
-    print(f"\n🏆 Best Overall: {best_phone['SMARTPHONENAME']}")
-    print(f"   TOPSIS Score: {best_phone['TOPSIS SCORE']:.3f}")
-    
-    best_value = result.loc[result['PRICE'].idxmin()]
-    print(f"\n💰 Best Value: {best_value['SMARTPHONENAME']}")
-    print(f"   Price: ₹{best_value['PRICE']:.0f}")
-    print(f"   TOPSIS Score: {best_value['TOPSIS SCORE']:.3f}")
-    
-    print("\n" + "="*80)
+    print(f"\n  Best Overall : {best_phone['SMARTPHONENAME']}")
+    print(f"  TOPSIS Score : {best_phone['TOPSIS SCORE']:.3f}")
+
+    budget_phones = result[result['PRICE'] <= 20000]
+    if not budget_phones.empty:
+        best_budget = budget_phones.iloc[0]
+        print(f"\n  Best Under 20k : {best_budget['SMARTPHONENAME']}")
+        print(f"  Price          : ₹{best_budget['PRICE']:,.0f}")
+        print(f"  TOPSIS Score   : {best_budget['TOPSIS SCORE']:.3f}")
+
+    print("\n" + "=" * 80)
 
 
 if __name__ == "__main__":

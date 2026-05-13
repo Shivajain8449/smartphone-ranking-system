@@ -143,3 +143,18 @@ output/*.png
 # Keep output directory but ignore its contents
 !output/.gitkeep
 !data/sample_smartphone_data.csv
+
+# Generated output files
+smartphone_rankings.csv
+smartphone_rankings.png
+*.pkl
+
+# Test coverage
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Virtual environment
+venv/
+env/
+.venv/

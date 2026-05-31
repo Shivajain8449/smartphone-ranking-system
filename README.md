@@ -538,8 +538,8 @@ in the Software without restriction...
 
 - 📧 Email: [shivajain299@gmail.com]
 - 💼 LinkedIn: [www.linkedin.com/in/shiva-jain]
-- 🐙 GitHub: [github.com/Shivajain8449]
-- 🌐 Portfolio: [Coming Soon]
+- 🐙 GitHub: [https://github.com/Shivajain8449]
+- 🌐 Portfolio: [https://smartphone-ranking-system-3tlhvfhwzj36cydahwcv2n.streamlit.app]
 
 ---
 

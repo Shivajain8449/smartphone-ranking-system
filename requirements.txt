@@ -20,9 +20,10 @@ tabulate>=0.8.9
 # ipython>=7.25.0
 
 # Optional: For Testing
-# pytest>=6.2.4
-# pytest-cov>=2.12.0
+pytest>=6.2.4
+pytest-cov>=2.12.0
 
 # Optional: For Code Quality
 # pylint>=2.9.0
 # black>=21.6b0
+streamlit>=1.28.0

@@ -4,6 +4,26 @@ from tabulate import tabulate
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+REQUIRED_COLUMNS = ['SMARTPHONENAME', 'BATTERY', 'CAMERA', 'STORAGE', 'PROCESSOR', 'RAM', 'PRICE']
+NUMERIC_COLUMNS = ['BATTERY', 'CAMERA', 'STORAGE', 'PROCESSOR', 'RAM', 'PRICE']
+
+
+def validate_dataframe(df):
+    for col in REQUIRED_COLUMNS:
+        if col not in df.columns:
+            raise ValueError(f"Missing column: {col}")
+    for col in NUMERIC_COLUMNS:
+        if not pd.api.types.is_numeric_dtype(df[col]):
+            raise ValueError(f"Column '{col}' must contain numeric values")
+    nulls = df[NUMERIC_COLUMNS].isnull().sum()
+    if nulls.any():
+        print(f"Warning: Found {nulls.sum()} null values - imputing with column medians")
+        for col in NUMERIC_COLUMNS:
+            if df[col].isnull().any():
+                df[col] = df[col].fillna(df[col].median())
+    return df
+
+
 class SmartphoneRanker:
     def __init__(self, data):
         """
@@ -12,7 +32,7 @@ class SmartphoneRanker:
         Parameters:
         data: DataFrame with smartphone features
         """
-        self.data = data.copy()
+        self.data = validate_dataframe(data.copy())
         self.normalized_data = None
         self.weighted_data = None
         self.topsis_scores = None

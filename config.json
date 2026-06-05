@@ -1,0 +1,22 @@
+{
+    "weights": {
+        "BATTERY": 0.20,
+        "CAMERA": 0.20,
+        "STORAGE": 0.10,
+        "PROCESSOR": 0.20,
+        "RAM": 0.15,
+        "PRICE": 0.15
+    },
+    "beneficial_features": ["BATTERY", "CAMERA", "STORAGE", "PROCESSOR", "RAM"],
+    "non_beneficial_features": ["PRICE"],
+    "price_categories": {
+        "Budget": {"min": 0, "max": 20000},
+        "Mid-Range": {"min": 20001, "max": 35000},
+        "Premium": {"min": 35001, "max": 60000},
+        "Flagship": {"min": 60001, "max": 999999}
+    },
+    "output": {
+        "rankings_file": "output/final_smartphone_rankings.csv",
+        "visualization_file": "smartphone_rankings.png"
+    }
+}

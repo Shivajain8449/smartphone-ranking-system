@@ -189,7 +189,8 @@ with open('feature_scaler.pkl', 'rb') as f:
 ```
 smartphone-ranking-system/
 │
-├── smartphone_ranker.py          # Main application
+├── config.json                    # Feature weights and configuration
+├── smartphone_ranker.py           # Main application
 ├── requirements.txt               # Python dependencies
 ├── README.md                      # This file
 ├── LICENSE                        # License file
@@ -356,30 +357,35 @@ random_state = 42       # Reproducibility
 
 ## 🔧 Configuration
 
-### Customizing Feature Weights
+### Customizing via config.json
 
-Edit weights in the code:
+All configurable values are in `config.json`:
 
-```python
-weights = {
-    'BATTERY': 0.20,    # 20%
-    'CAMERA': 0.25,     # 25%
-    'STORAGE': 0.15,    # 15%
-    'PROCESSOR': 0.25,  # 25%
-    'RAM': 0.15         # 15%
+```json
+{
+    "weights": {
+        "BATTERY": 0.20,
+        "CAMERA": 0.20,
+        "STORAGE": 0.10,
+        "PROCESSOR": 0.20,
+        "RAM": 0.15,
+        "PRICE": 0.15
+    },
+    "beneficial_features": ["BATTERY", "CAMERA", "STORAGE", "PROCESSOR", "RAM"],
+    "non_beneficial_features": ["PRICE"],
+    "output": {
+        "rankings_file": "output/final_smartphone_rankings.csv",
+        "visualization_file": "smartphone_rankings.png"
+    }
 }
-# Total must equal 1.0 (100%)
 ```
 
-### Adjusting Price Categories
+- **weights**: Feature importance (must sum to 1.0)
+- **beneficial_features**: Features where higher values are better
+- **non_beneficial_features**: Features where lower values are better
+- **output**: Customize file paths for rankings and visualizations
 
-```python
-pd.cut(
-    data['PRICE'], 
-    bins=[0, 20000, 35000, 60000, float('inf')],
-    labels=['Budget', 'Mid-Range', 'Premium', 'Flagship']
-)
-```
+If `config.json` is missing, the system falls back to default values.
 
 ---
 

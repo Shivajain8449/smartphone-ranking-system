@@ -483,7 +483,7 @@ Contributions are welcome! Here's how you can help:
 
 ## 🐛 Known Issues & Limitations
 
-- Limited to 10 sample smartphones (expandable)
+- Limited to 20 sample smartphones (expandable)
 - Feature weights are static (working on customization)
 - No real-time price updates
 - Missing features: Screen size, 5G, Brand value

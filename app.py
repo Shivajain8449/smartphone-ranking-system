@@ -151,7 +151,7 @@ with st.sidebar:
 
     st.markdown("---")
     st.markdown("### Data Source")
-    data_source = st.radio("Choose dataset", ["Built-in (10 phones)", "Upload CSV"])
+    data_source = st.radio("Choose dataset", ["Built-in (20 phones)", "Upload CSV"])
 
     uploaded_file = None
     if data_source == "Upload CSV":
@@ -173,13 +173,22 @@ def load_builtin():
     return pd.DataFrame({
         'SMARTPHONENAME': ['Galaxy X1','Pixel Pro','Moto One','Redmi Note',
                            'Realme GT','iPhone 14','OnePlus 10','Vivo V25',
-                           'Oppo F21','Samsung M32'],
-        'BATTERY':    [5000, 4500, 4000, 4500, 4200, 3800, 4500, 4600, 5000, 6000],
-        'CAMERA':     [64,   48,   32,   50,   64,   48,   50,   64,   48,   64],
-        'STORAGE':    [128,  128,  64,   128,  256,  128,  256,  128,  64,   128],
-        'PROCESSOR':  [2.4,  2.8,  2.0,  2.3,  3.0,  3.2,  2.9,  2.5,  2.2,  2.4],
-        'RAM':        [8,    12,   6,    8,    12,   6,    12,   8,    6,    8],
-        'PRICE':      [20000,25000,18000,15000,30000,80000,35000,22000,16000,14000]
+                           'Oppo F21','Samsung M32','Xiaomi 13 Pro',
+                           'Nothing Phone 2','Pixel 8','Samsung S24',
+                           'OnePlus 12R','Vivo X100','Realme 12 Pro',
+                           'Moto G84','Redmi Note 13','IQOO Neo 9'],
+        'BATTERY':    [5000, 4500, 4000, 4500, 4200, 3800, 4500, 4600, 5000, 6000,
+                       4820, 4700, 4575, 4000, 5500, 5000, 5000, 5000, 5000, 5160],
+        'CAMERA':     [64,   48,   32,   50,   64,   48,   50,   64,   48,   64,
+                       50,   50,   50,   50,   50,   64,   50,   50,   108,  50],
+        'STORAGE':    [128,  128,  64,   128,  256,  128,  256,  128,  64,   128,
+                       256,  256,  128,  256,  256,  256,  128,  128,  128,  256],
+        'PROCESSOR':  [2.4,  2.8,  2.0,  2.3,  3.0,  3.2,  2.9,  2.5,  2.2,  2.4,
+                       3.2,  3.0,  3.0,  3.4,  3.2,  3.3,  2.6,  2.4,  2.5,  3.0],
+        'RAM':        [8,    12,   6,    8,    12,   6,    12,   8,    6,    8,
+                       12,   12,   8,    8,    16,   16,   8,    12,   8,    12],
+        'PRICE':      [20000,25000,18000,15000,30000,80000,35000,22000,16000,14000,
+                       75000,45000,60000,80000,40000,60000,26000,20000,18000,28000]
     })
 
 if uploaded_file is not None:

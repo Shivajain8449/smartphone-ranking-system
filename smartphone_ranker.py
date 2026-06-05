@@ -1,8 +1,31 @@
+import json
+import os
 import pandas as pd
 import numpy as np
 from tabulate import tabulate
 import matplotlib.pyplot as plt
 import seaborn as sns
+
+DEFAULT_CONFIG = {
+    "weights": {
+        "BATTERY": 0.20, "CAMERA": 0.20, "STORAGE": 0.10,
+        "PROCESSOR": 0.20, "RAM": 0.15, "PRICE": 0.15
+    },
+    "beneficial_features": ["BATTERY", "CAMERA", "STORAGE", "PROCESSOR", "RAM"],
+    "non_beneficial_features": ["PRICE"],
+    "output": {
+        "rankings_file": "output/final_smartphone_rankings.csv",
+        "visualization_file": "smartphone_rankings.png"
+    }
+}
+
+
+def load_config(path="config.json"):
+    if os.path.exists(path):
+        with open(path) as f:
+            return json.load(f)
+    return DEFAULT_CONFIG
+
 
 class SmartphoneRanker:
     def __init__(self, data):
@@ -182,33 +205,45 @@ class SmartphoneRanker:
 
 
 def main():
-    """
-    Main function to run the smartphone ranking system.
-    Supports both sample dataset and loading from CSV file.
-    """
-    import os
+    config = load_config()
 
-    # ----------------------------------------------------------------
-    # Option 1: Load from CSV (recommended — uses your full dataset)
-    # ----------------------------------------------------------------
     csv_path = os.path.join('data', 'sample_smartphone_data.csv')
     if os.path.exists(csv_path):
         df = pd.read_csv(csv_path)
         print(f"Loaded data from {csv_path}")
     else:
-        # ----------------------------------------------------------------
-        # Option 2: Built-in sample dataset (CORRECTED — PROCESSOR fixed)
-        # PROCESSOR values are clock speeds in GHz, NOT price values.
-        # ----------------------------------------------------------------
         data = {
             'SMARTPHONENAME': ['Galaxy X1', 'Pixel pro', 'Moto one',
-                               'Redmi note', 'Realme GT'],
-            'BATTERY':    [5000, 4500, 4000, 4500, 4200],   # mAh
-            'CAMERA':     [64,   48,   32,   50,   64],      # MP
-            'STORAGE':    [128,  128,  64,   128,  256],     # GB
-            'PROCESSOR':  [2.4,  2.8,  2.0,  2.3,  3.0],   # GHz  ← FIXED
-            'RAM':        [8,    12,   6,    8,    12],      # GB
-            'PRICE':      [20000, 25000, 18000, 15000, 30000]  # INR
+                               'Redmi note', 'Realme GT', 'iPhone 14',
+                               'OnePlus 10', 'Vivo V25', 'Oppo F21',
+                               'Samsung M32', 'Xiaomi 13 Pro',
+                               'Nothing Phone 2', 'Pixel 8', 'Samsung S24',
+                               'OnePlus 12R', 'Vivo X100', 'Realme 12 Pro',
+                               'Moto G84', 'Redmi Note 13', 'IQOO Neo 9'],
+            'BATTERY':    [5000, 4500, 4000, 4500, 4200, 3800,
+                           4500, 4600, 5000, 6000, 4820, 4700,
+                           4575, 4000, 5500, 5000, 5000, 5000,
+                           5000, 5160],
+            'CAMERA':     [64,   48,   32,   50,   64,   48,
+                           50,   64,   48,   64,   50,   50,
+                           50,   50,   50,   64,   50,   50,
+                           108,  50],
+            'STORAGE':    [128,  128,  64,   128,  256,  128,
+                           256,  128,  64,   128,  256,  256,
+                           128,  256,  256,  256,  128,  128,
+                           128,  256],
+            'PROCESSOR':  [2.4,  2.8,  2.0,  2.3,  3.0,  3.2,
+                           2.9,  2.5,  2.2,  2.4,  3.2,  3.0,
+                           3.0,  3.4,  3.2,  3.3,  2.6,  2.4,
+                           2.5,  3.0],
+            'RAM':        [8,    12,   6,    8,    12,   6,
+                           12,   8,    6,    8,    12,   12,
+                           8,    8,    16,   16,   8,    12,
+                           8,    12],
+            'PRICE':      [20000, 25000, 18000, 15000, 30000, 80000,
+                           35000, 22000, 16000, 14000, 75000, 45000,
+                           60000, 80000, 40000, 60000, 26000, 20000,
+                           18000, 28000]
         }
         df = pd.DataFrame(data)
         print("Using built-in sample dataset")
@@ -220,59 +255,44 @@ def main():
     print("\nOriginal Dataset:")
     print(tabulate(df, headers='keys', tablefmt='grid', showindex=False))
 
-    # Initialize ranker
     ranker = SmartphoneRanker(df)
 
-    # Define features to analyse (excluding SMARTPHONENAME)
-    features = ['BATTERY', 'CAMERA', 'STORAGE', 'PROCESSOR', 'RAM', 'PRICE']
-
-    # Define weights for each feature (must sum to 1.0)
-    weights = {
-        'BATTERY':   0.20,   # 20% — battery life matters
-        'CAMERA':    0.20,   # 20% — camera quality
-        'STORAGE':   0.10,   # 10% — storage space
-        'PROCESSOR': 0.20,   # 20% — processing speed
-        'RAM':       0.15,   # 15% — multitasking
-        'PRICE':     0.15    # 15% — lower price is better
-    }
+    features = list(config["weights"].keys())
+    weights = config["weights"]
 
     print("\n" + "=" * 80)
-    print("Feature Weights:")
+    print("Feature Weights (loaded from config.json):")
     for feature, weight in weights.items():
         print(f"  {feature}: {weight * 100:.0f}%")
     print("=" * 80)
 
-    # Step 1: Normalize data
     print("\nStep 1: Normalizing data...")
     ranker.normalize_data(features)
 
-    # Step 2: Apply weights
     print("Step 2: Applying weights...")
     ranker.apply_weights(features, weights)
 
-    # Step 3: Calculate TOPSIS scores
     print("Step 3: Calculating TOPSIS scores...")
-    beneficial = ['BATTERY', 'CAMERA', 'STORAGE', 'PROCESSOR', 'RAM']
-    result = ranker.calculate_topsis(features, beneficial=beneficial,
-                                     non_beneficial=['PRICE'])
+    result = ranker.calculate_topsis(
+        features,
+        beneficial=config.get("beneficial_features", ["BATTERY", "CAMERA", "STORAGE", "PROCESSOR", "RAM"]),
+        non_beneficial=config.get("non_beneficial_features", ["PRICE"])
+    )
 
-    # Display results
     print("\n" + "=" * 80)
     print("FINAL RANKINGS:")
     print("=" * 80)
     print(tabulate(result, headers='keys', tablefmt='grid', showindex=False))
 
-    # Save to CSV
-    output_path = os.path.join('output', 'final_smartphone_rankings.csv')
-    os.makedirs('output', exist_ok=True)
+    output_cfg = config.get("output", {})
+    output_path = output_cfg.get("rankings_file", "output/final_smartphone_rankings.csv")
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
     result.to_csv(output_path, index=False)
     print(f"\nResults saved to '{output_path}'")
 
-    # Generate visualizations
     print("\nGenerating visualizations...")
     ranker.visualize_rankings(result)
 
-    # Additional insights
     print("\n" + "=" * 80)
     print("KEY INSIGHTS:")
     print("=" * 80)

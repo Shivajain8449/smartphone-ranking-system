@@ -109,3 +109,48 @@ class TestCalculateTopsis:
         ranker.apply_weights(features, weights)
         result = ranker.calculate_topsis(features)
         assert result['RANK'].tolist() == sorted(result['RANK'].tolist())
+
+    def test_custom_weights_give_different_order(self, sample_df, features, weights):
+        ranker = SmartphoneRanker(sample_df)
+        ranker.normalize_data(features)
+        ranker.apply_weights(features, weights)
+        result_default = ranker.calculate_topsis(features)
+
+        custom_w = weights.copy()
+        custom_w['BATTERY'] = 0.40
+        custom_w['PRICE'] = 0.01
+        ranker2 = SmartphoneRanker(sample_df)
+        ranker2.normalize_data(features)
+        ranker2.apply_weights(features, custom_w)
+        result_custom = ranker2.calculate_topsis(features)
+        assert not result_default.equals(result_custom)
+
+    def test_non_beneficial_feature_lower_is_better(self, sample_df, features, weights):
+        ranker = SmartphoneRanker(sample_df)
+        ranker.normalize_data(features)
+        ranker.apply_weights(features, weights)
+        result = ranker.calculate_topsis(features, beneficial=['BATTERY', 'CAMERA', 'STORAGE', 'PROCESSOR'],
+                                          non_beneficial=['PRICE'])
+        assert 'RANK' in result.columns
+        assert 'TOPSIS SCORE' in result.columns
+
+    def test_single_row_returns_rank_1(self, features, weights):
+        single = pd.DataFrame({
+            'SMARTPHONENAME': ['Only Phone'],
+            'BATTERY': [4000], 'CAMERA': [48], 'STORAGE': [128],
+            'PROCESSOR': [2.5], 'PRICE': [20000]
+        })
+        ranker = SmartphoneRanker(single)
+        ranker.normalize_data(features)
+        ranker.apply_weights(features, weights)
+        result = ranker.calculate_topsis(features)
+        assert result.iloc[0]['RANK'] == 1
+        assert result.iloc[0]['TOPSIS SCORE'] == 1.0
+
+    def test_topsis_score_unchanged_repeated_run(self, sample_df, features, weights):
+        ranker = SmartphoneRanker(sample_df)
+        ranker.normalize_data(features)
+        ranker.apply_weights(features, weights)
+        r1 = ranker.calculate_topsis(features)
+        r2 = ranker.calculate_topsis(features)
+        pd.testing.assert_frame_equal(r1, r2)

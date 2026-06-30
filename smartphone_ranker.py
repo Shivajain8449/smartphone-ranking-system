@@ -1,3 +1,5 @@
+import argparse
+import os
 import pandas as pd
 import numpy as np
 from tabulate import tabulate
@@ -201,37 +203,39 @@ class SmartphoneRanker:
         plt.show()
 
 
-def main():
-    """
-    Main function to run the smartphone ranking system.
-    Supports both sample dataset and loading from CSV file.
-    """
-    import os
+def parse_args():
+    parser = argparse.ArgumentParser(description="Smartphone Feature Ranking System")
+    parser.add_argument("--data", type=str, help="Path to CSV dataset")
+    parser.add_argument("--top", type=int, default=None, help="Show only top N results")
+    parser.add_argument("--export", type=str, choices=["csv", "none"], default="csv", help="Export format")
+    parser.add_argument("--weights", type=str, nargs="*", metavar="FEATURE=VALUE", help="Custom weights e.g. battery=0.25 camera=0.25")
+    return parser.parse_args()
 
-    # ----------------------------------------------------------------
-    # Option 1: Load from CSV (recommended — uses your full dataset)
-    # ----------------------------------------------------------------
-    csv_path = os.path.join('data', 'sample_smartphone_data.csv')
-    if os.path.exists(csv_path):
-        df = pd.read_csv(csv_path)
-        print(f"Loaded data from {csv_path}")
+
+def main():
+    args = parse_args()
+
+    if args.data and os.path.exists(args.data):
+        df = pd.read_csv(args.data)
+        print(f"Loaded data from {args.data}")
     else:
-        # ----------------------------------------------------------------
-        # Option 2: Built-in sample dataset (CORRECTED — PROCESSOR fixed)
-        # PROCESSOR values are clock speeds in GHz, NOT price values.
-        # ----------------------------------------------------------------
-        data = {
-            'SMARTPHONENAME': ['Galaxy X1', 'Pixel pro', 'Moto one',
-                               'Redmi note', 'Realme GT'],
-            'BATTERY':    [5000, 4500, 4000, 4500, 4200],   # mAh
-            'CAMERA':     [64,   48,   32,   50,   64],      # MP
-            'STORAGE':    [128,  128,  64,   128,  256],     # GB
-            'PROCESSOR':  [2.4,  2.8,  2.0,  2.3,  3.0],   # GHz  ← FIXED
-            'RAM':        [8,    12,   6,    8,    12],      # GB
-            'PRICE':      [20000, 25000, 18000, 15000, 30000]  # INR
-        }
-        df = pd.DataFrame(data)
-        print("Using built-in sample dataset")
+        csv_path = os.path.join('data', 'sample_smartphone_data.csv')
+        if os.path.exists(csv_path):
+            df = pd.read_csv(csv_path)
+            print(f"Loaded data from {csv_path}")
+        else:
+            data = {
+                'SMARTPHONENAME': ['Galaxy X1', 'Pixel pro', 'Moto one',
+                                   'Redmi note', 'Realme GT'],
+                'BATTERY':    [5000, 4500, 4000, 4500, 4200],
+                'CAMERA':     [64,   48,   32,   50,   64],
+                'STORAGE':    [128,  128,  64,   128,  256],
+                'PROCESSOR':  [2.4,  2.8,  2.0,  2.3,  3.0],
+                'RAM':        [8,    12,   6,    8,    12],
+                'PRICE':      [20000, 25000, 18000, 15000, 30000]
+            }
+            df = pd.DataFrame(data)
+            print("Using built-in sample dataset")
 
     print("=" * 80)
     print("SMARTPHONE FEATURE RANKING SYSTEM")
@@ -240,21 +244,24 @@ def main():
     print("\nOriginal Dataset:")
     print(tabulate(df, headers='keys', tablefmt='grid', showindex=False))
 
-    # Initialize ranker
     ranker = SmartphoneRanker(df)
 
-    # Define features to analyse (excluding SMARTPHONENAME)
     features = ['BATTERY', 'CAMERA', 'STORAGE', 'PROCESSOR', 'RAM', 'PRICE']
 
-    # Define weights for each feature (must sum to 1.0)
     weights = {
-        'BATTERY':   0.20,   # 20% — battery life matters
-        'CAMERA':    0.20,   # 20% — camera quality
-        'STORAGE':   0.10,   # 10% — storage space
-        'PROCESSOR': 0.20,   # 20% — processing speed
-        'RAM':       0.15,   # 15% — multitasking
-        'PRICE':     0.15    # 15% — lower price is better
+        'BATTERY': 0.20, 'CAMERA': 0.20, 'STORAGE': 0.10,
+        'PROCESSOR': 0.20, 'RAM': 0.15, 'PRICE': 0.15
     }
+    if args.weights:
+        for w in args.weights:
+            if '=' in w:
+                k, v = w.split('=', 1)
+                key = k.upper().strip()
+                if key in weights:
+                    weights[key] = float(v)
+        total = sum(weights.values())
+        if abs(total - 1.0) > 0.001:
+            weights = {k: v / total for k, v in weights.items()}
 
     print("\n" + "=" * 80)
     print("Feature Weights:")
@@ -262,37 +269,34 @@ def main():
         print(f"  {feature}: {weight * 100:.0f}%")
     print("=" * 80)
 
-    # Step 1: Normalize data
     print("\nStep 1: Normalizing data...")
     ranker.normalize_data(features)
 
-    # Step 2: Apply weights
     print("Step 2: Applying weights...")
     ranker.apply_weights(features, weights)
 
-    # Step 3: Calculate TOPSIS scores
     print("Step 3: Calculating TOPSIS scores...")
     beneficial = ['BATTERY', 'CAMERA', 'STORAGE', 'PROCESSOR', 'RAM']
     result = ranker.calculate_topsis(features, beneficial=beneficial,
                                      non_beneficial=['PRICE'])
 
-    # Display results
+    if args.top:
+        result = result.head(args.top)
+
     print("\n" + "=" * 80)
     print("FINAL RANKINGS:")
     print("=" * 80)
     print(tabulate(result, headers='keys', tablefmt='grid', showindex=False))
 
-    # Save to CSV
-    output_path = os.path.join('output', 'final_smartphone_rankings.csv')
-    os.makedirs('output', exist_ok=True)
-    result.to_csv(output_path, index=False)
-    print(f"\nResults saved to '{output_path}'")
+    if args.export == "csv":
+        output_path = os.path.join('output', 'final_smartphone_rankings.csv')
+        os.makedirs('output', exist_ok=True)
+        result.to_csv(output_path, index=False)
+        print(f"\nResults saved to '{output_path}'")
 
-    # Generate visualizations
     print("\nGenerating visualizations...")
     ranker.visualize_rankings(result)
 
-    # Additional insights
     print("\n" + "=" * 80)
     print("KEY INSIGHTS:")
     print("=" * 80)

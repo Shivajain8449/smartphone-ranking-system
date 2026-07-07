@@ -132,7 +132,7 @@ There are two ways to run this project:
 ### 1. Streamlit Web App (interactive)
 
 ```bash
-streamlit run app.py
+https://smartphone-ranking-system-3tlhvfhwzj36cydahwcv2n.streamlit.app/
 ```
 
 This opens a browser-based dashboard where you can:

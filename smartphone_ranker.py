@@ -11,6 +11,26 @@ NUMERIC_COLUMNS = ['BATTERY', 'CAMERA', 'STORAGE', 'PROCESSOR', 'RAM', 'PRICE']
 
 
 def validate_dataframe(df):
+    """
+    Validate and sanitize the smartphone ranking dataset.
+
+    Args:
+        df (pandas.DataFrame): Dataset containing the required smartphone
+            feature columns and numeric scoring inputs.
+
+    Returns:
+        pandas.DataFrame: The validated dataframe, with missing numeric values
+            imputed using column medians when necessary.
+
+    Raises:
+        ValueError: If a required column is missing or if any numeric feature
+            column contains non-numeric values.
+
+    Example:
+        >>> clean_df = validate_dataframe(raw_df)
+        >>> set(REQUIRED_COLUMNS).issubset(clean_df.columns)
+        True
+    """
     for col in REQUIRED_COLUMNS:
         if col not in df.columns:
             raise ValueError(f"Missing column: {col}")
@@ -29,10 +49,24 @@ def validate_dataframe(df):
 class SmartphoneRanker:
     def __init__(self, data):
         """
-        Initialize the Smartphone Ranker with dataset
-        
-        Parameters:
-        data: DataFrame with smartphone features
+        Initialize a ranking workflow with smartphone feature data.
+
+        Args:
+            data (pandas.DataFrame): Raw smartphone dataset containing the
+                required feature and price columns.
+
+        Returns:
+            None: This initializer stores validated data and prepares empty
+            placeholders for normalized values, weighted values, and scores.
+
+        Raises:
+            ValueError: If the supplied dataframe fails validation for required
+                columns or numeric feature types.
+
+        Example:
+            >>> ranker = SmartphoneRanker(smartphone_df)
+            >>> ranker.normalized_data is None
+            True
         """
         self.data = validate_dataframe(data.copy())
         self.normalized_data = None
@@ -41,10 +75,25 @@ class SmartphoneRanker:
         
     def normalize_data(self, features):
         """
-        Normalize the feature data using vector normalization
-        
-        Parameters:
-        features: list of feature column names to normalize
+        Normalize feature columns using TOPSIS vector normalization.
+
+        Args:
+            features (list[str]): Feature column names to normalize.
+
+        Returns:
+            pandas.DataFrame: Copy of the dataset with the selected feature
+            columns normalized by their vector magnitude.
+
+        Raises:
+            KeyError: If any requested feature is not present in the dataset.
+            ZeroDivisionError: If a feature column contains only zeros and
+                cannot be vector-normalized.
+
+        Example:
+            >>> ranker = SmartphoneRanker(smartphone_df)
+            >>> normalized = ranker.normalize_data(["BATTERY", "PRICE"])
+            >>> normalized["BATTERY"].max() <= 1
+            True
         """
         normalized = self.data.copy()
         
@@ -58,11 +107,27 @@ class SmartphoneRanker:
     
     def apply_weights(self, features, weights):
         """
-        Apply weights to normalized features
-        
-        Parameters:
-        features: list of feature column names
-        weights: dictionary with feature names as keys and weights as values
+        Apply decision weights to normalized feature columns.
+
+        Args:
+            features (list[str]): Feature column names to weight.
+            weights (dict[str, float]): Mapping of feature names to their
+                TOPSIS weights. Missing features default to a weight of 1.0.
+
+        Returns:
+            pandas.DataFrame: Copy of the normalized dataset with weighted
+            feature values.
+
+        Raises:
+            ValueError: If normalization has not been run before weighting.
+            KeyError: If any requested feature is not present in the normalized
+                dataset.
+
+        Example:
+            >>> ranker.normalize_data(["BATTERY", "PRICE"])
+            >>> weighted = ranker.apply_weights(["BATTERY", "PRICE"], {"BATTERY": 0.6, "PRICE": 0.4})
+            >>> "BATTERY" in weighted
+            True
         """
         if self.normalized_data is None:
             raise ValueError("Data must be normalized first")
@@ -78,12 +143,31 @@ class SmartphoneRanker:
     def calculate_topsis(self, features, beneficial=['BATTERY', 'CAMERA', 'STORAGE', 'PROCESSOR'], 
                          non_beneficial=['PRICE']):
         """
-        Calculate TOPSIS scores
-        
-        Parameters:
-        features: list of all feature column names
-        beneficial: list of features where higher is better
-        non_beneficial: list of features where lower is better
+        Calculate TOPSIS scores and ranks for the weighted dataset.
+
+        Args:
+            features (list[str]): Feature column names included in the TOPSIS
+                distance calculation.
+            beneficial (list[str], optional): Features where higher values are
+                preferred. Defaults to battery, camera, storage, and processor.
+            non_beneficial (list[str], optional): Features where lower values
+                are preferred. Defaults to price.
+
+        Returns:
+            pandas.DataFrame: Ranked smartphone dataset sorted by ascending
+            rank, with `TOPSIS SCORE` and `RANK` columns added.
+
+        Raises:
+            ValueError: If weights have not been applied before scoring.
+            KeyError: If any requested feature is missing from the weighted
+                dataset.
+
+        Example:
+            >>> ranker.normalize_data(features)
+            >>> ranker.apply_weights(features, weights)
+            >>> result = ranker.calculate_topsis(features)
+            >>> {"TOPSIS SCORE", "RANK"}.issubset(result.columns)
+            True
         """
         if self.weighted_data is None:
             raise ValueError("Weights must be applied first")
@@ -119,7 +203,13 @@ class SmartphoneRanker:
         distance_to_best = np.array(distance_to_best)
         distance_to_worst = np.array(distance_to_worst)
         
-        topsis_scores = distance_to_worst / (distance_to_best + distance_to_worst)
+        denominator = distance_to_best + distance_to_worst
+        topsis_scores = np.divide(
+            distance_to_worst,
+            denominator,
+            out=np.ones_like(distance_to_worst, dtype=float),
+            where=denominator != 0
+        )
         
         self.topsis_scores = topsis_scores
         
@@ -132,7 +222,25 @@ class SmartphoneRanker:
     
     def visualize_rankings(self, result_df):
         """
-        Create visualizations for the rankings
+        Create and save ranking visualizations.
+
+        Args:
+            result_df (pandas.DataFrame): Ranked smartphone dataframe containing
+                `SMARTPHONENAME`, feature columns, `TOPSIS SCORE`, `RANK`, and
+                `PRICE`.
+
+        Returns:
+            None: Saves `smartphone_rankings.png` and displays the generated
+            matplotlib figure.
+
+        Raises:
+            KeyError: If required ranking or feature columns are missing.
+            ValueError: If feature normalization for the radar chart encounters
+                invalid ranges.
+
+        Example:
+            >>> result = ranker.calculate_topsis(features)
+            >>> ranker.visualize_rankings(result)
         """
         fig, axes = plt.subplots(2, 2, figsize=(15, 10))
         
@@ -204,6 +312,23 @@ class SmartphoneRanker:
 
 
 def parse_args():
+    """
+    Parse command-line arguments for the ranking script.
+
+    Args:
+        None.
+
+    Returns:
+        argparse.Namespace: Parsed arguments including optional dataset path,
+            result limit, export format, and feature weights.
+
+    Raises:
+        SystemExit: If invalid command-line arguments are provided.
+
+    Example:
+        >>> # From the shell:
+        >>> # python smartphone_ranker.py --top 3 --export csv
+    """
     parser = argparse.ArgumentParser(description="Smartphone Feature Ranking System")
     parser.add_argument("--data", type=str, help="Path to CSV dataset")
     parser.add_argument("--top", type=int, default=None, help="Show only top N results")
@@ -213,6 +338,26 @@ def parse_args():
 
 
 def main():
+    """
+    Run the end-to-end smartphone ranking command-line workflow.
+
+    Args:
+        None.
+
+    Returns:
+        None: Prints the ranking workflow, optionally exports CSV results, and
+            generates ranking visualizations.
+
+    Raises:
+        ValueError: If the loaded or fallback dataset fails validation, if
+            weight application is attempted before normalization, or if custom
+            weights cannot be converted to numeric values.
+        OSError: If output files cannot be written.
+
+    Example:
+        >>> # From the shell:
+        >>> # python smartphone_ranker.py --data data/sample_smartphone_data.csv --top 5
+    """
     args = parse_args()
 
     if args.data and os.path.exists(args.data):

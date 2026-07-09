@@ -453,7 +453,7 @@ def main():
     if not budget_phones.empty:
         best_budget = budget_phones.iloc[0]
         print(f"\n  Best Under 20k : {best_budget['SMARTPHONENAME']}")
-        print(f"  Price          : ₹{best_budget['PRICE']:,.0f}")
+        print(f"  Price          : Rs.{best_budget['PRICE']:,.0f}")
         print(f"  TOPSIS Score   : {best_budget['TOPSIS SCORE']:.3f}")
 
     print("\n" + "=" * 80)

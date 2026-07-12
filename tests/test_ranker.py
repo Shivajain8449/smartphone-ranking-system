@@ -21,13 +21,14 @@ def sample_df():
         'CAMERA':     [64,   48,   32],
         'STORAGE':    [256,  128,  64],
         'PROCESSOR':  [3.0,  2.5,  2.0],
+        'RAM':        [12,   8,    6],
         'PRICE':      [20000, 15000, 10000]
     })
 
 
 @pytest.fixture
 def features():
-    return ['BATTERY', 'CAMERA', 'STORAGE', 'PROCESSOR', 'PRICE']
+    return ['BATTERY', 'CAMERA', 'STORAGE', 'PROCESSOR', 'RAM', 'PRICE']
 
 
 @pytest.fixture
@@ -37,6 +38,7 @@ def weights():
         'CAMERA':    0.25,
         'STORAGE':   0.15,
         'PROCESSOR': 0.25,
+        'RAM':       0.10,
         'PRICE':     0.15
     }
 
@@ -138,7 +140,7 @@ class TestCalculateTopsis:
         single = pd.DataFrame({
             'SMARTPHONENAME': ['Only Phone'],
             'BATTERY': [4000], 'CAMERA': [48], 'STORAGE': [128],
-            'PROCESSOR': [2.5], 'PRICE': [20000]
+            'PROCESSOR': [2.5], 'RAM': [8], 'PRICE': [20000]
         })
         ranker = SmartphoneRanker(single)
         ranker.normalize_data(features)
